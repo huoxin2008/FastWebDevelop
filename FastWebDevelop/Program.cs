@@ -18,7 +18,7 @@ namespace FastWebDevelop
         static List<string> SaveFunc = new List<string>();
         static List<string> UserSaveFunc = new List<string>();
 
-        static string Token = "";
+        public static string Token = "";
         public static Dictionary<string, string> UserToken = new Dictionary<string, string>();
 
         //static Func<string, string, bool> LoginHandle;
@@ -33,6 +33,8 @@ namespace FastWebDevelop
 #else
             server = new HproseHttpListenerServer("http://127.0.0.1:22012/");
 #endif
+            var AddDomian = new string[] { "TaiDong" };
+
             var fs = Directory.GetFiles(dPath, "*.dll");
             foreach (var f in fs)
             {
@@ -58,6 +60,26 @@ namespace FastWebDevelop
                 catch { }
             }
 
+            try
+            {
+                var aes = Assembly.GetExecutingAssembly();
+                var ts = aes.GetTypes();
+                foreach (var t in ts)
+                {
+                    if (t.IsNotPublic || AddDomian.All(a => !t.FullName.Contains(a)))
+                        continue;
+                    if (t.Name.ToLower().EndsWith("model"))
+                    {
+                        HproseClassManager.Register(t, t.Name);
+                    }
+                    else
+                    {
+                        AddClass(t);
+                    }
+                }
+            }
+            catch { }
+
             server.OnBeforeInvoke += (name, arg, byRef, context) =>
             {
                 if (SaveFunc.Contains(name))
@@ -77,7 +99,7 @@ namespace FastWebDevelop
 
             };
             server.IsCrossDomainEnabled = true;
-            server.CrossDomainXmlFile = "crossdomain.xml";
+            //server.CrossDomainXmlFile = "crossdomain.xml";
             server.Start();
             Console.WriteLine("Server started.");
             Console.ReadLine();

@@ -28,7 +28,7 @@ namespace FastWebDevelop
         {
             var db = ct.GetDatabase(dbname);
             var col = db.GetCollection<T>(typeof(T).FullName);
-            return col.Find<T>(fiter, new FindOptions { BatchSize = 1 }).FirstOrDefault();
+            return col.Find<T>(fiter).FirstOrDefault();
         }
 
         public static List<T> FindList<T>(Expression<Func<T, bool>> fiter, string dbname = "default")
@@ -64,6 +64,7 @@ namespace FastWebDevelop
             var col = db.GetCollection<T>(typeof(T).FullName);
             return col.UpdateOne(fiter, update);
         }
+
         public static UpdateResult UpdateMany<T>(Expression<Func<T, bool>> fiter, UpdateDefinition<T> update, string dbname = "default")
         {
             var db = ct.GetDatabase(dbname);
@@ -85,6 +86,9 @@ namespace FastWebDevelop
             return col.DeleteMany(fiter);
         }
 
-
+        public static UpdateDefinitionBuilder<T> GetUpdateDef<T>()
+        {
+            return new UpdateDefinitionBuilder<T>();
+        }
     }
 }

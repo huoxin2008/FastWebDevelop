@@ -15,7 +15,7 @@ namespace TaiDong
         [UnSafe]
         public static string GetContent(string type)
         {
-            return (Mongo.First<Content>(a => a.type == type) ?? new Content()).content;
+            return (Mongo.First<Content>(a => a.type == type, DBName) ?? new Content()).content;
         }
 
         public static AjaxResult SetContent(string token, string type, string content)
@@ -35,13 +35,22 @@ namespace TaiDong
         [UnSafe]
         public static AjaxResult Login(string name, string pass)
         {
-            var u = Mongo.First<User>(a => a.name == name && a.pass == pass);
-            if (u == null)
-                return AjaxResult.Error("登录失败！");
-            //var tk = TokenManager.GetUserToken(name);
-            //Program.UserToken.Add(name, tk);
-            Program.Token = TokenManager.GetGlobalToken();
-            return AjaxResult.Success(Program.Token);
+            Mongo.Insert<User>(new User { name = "admin", pass = "admin", level = "管理员" });
+            try
+            {
+                var u = Mongo.First<User>(a => a.name == name && a.pass == pass, DBName);
+                if (u == null)
+                    return AjaxResult.Error("登录失败！");
+                //var tk = TokenManager.GetUserToken(name);
+                //Program.UserToken.Add(name, tk);
+                Program.Token = TokenManager.GetGlobalToken();
+                return AjaxResult.Success(Program.Token);
+            }
+            catch (Exception e)
+            {
+                return AjaxResult.Error(e.Message);
+            }
+
         }
 
 
@@ -57,6 +66,7 @@ namespace TaiDong
 
     public class User
     {
+        public int id;
         public string name;
         public string pass;
         public string level;
