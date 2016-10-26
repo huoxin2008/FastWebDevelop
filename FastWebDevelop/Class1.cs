@@ -24,6 +24,15 @@ namespace TaiDong
             return (Db.First<Content>(a => a.type == type) ?? new Content()).content;
         }
 
+
+        public static AjaxResult ChangePass(string token, string pass)
+        {
+            return MvcHelp.Try(() =>
+            {
+                //var fo = Db.First<User>(a => a.name == "admin");
+                Db.Update<User>(a => a.name == "admin", Mongo.GetUpdateDef<User>().Set(b => b.pass, pass));
+            });
+        }
         public static AjaxResult SetContent(string token, string type, string content)
         {
             return MvcHelp.Try(() =>
@@ -71,7 +80,7 @@ namespace TaiDong
         public string type;
         public DateTime editTime;
         public string content;
-      
+
     }
 
     public class User

@@ -34,12 +34,14 @@ namespace FastWebDevelop
 #else
             server = new HproseHttpListenerServer("http://127.0.0.1:22012/");
 #endif
-            //Mongo Db = new Mongo("TaiDong");
+            Mongo Db = new Mongo("TaiDong");
             //Db.DeleteMany<User>(add=>true);
             // Db.Delete<Content>(a=>a.type=="about");
             //var add= Db.FindList<Content>(a => true);
             var AddDomian = new string[] { "TaiDong" };
-            //Mongo.Insert<User>(new User { name = "admin", pass = "admin", level = "管理员" }, "TaiDong");
+
+            if (Db.Count<User>(a => true) == 0)
+                Db.Insert<User>(new User { name = "admin", pass = "admin", level = "管理员" });
 
             var fs = Directory.GetFiles(dPath, "*.dll");
             foreach (var f in fs)
