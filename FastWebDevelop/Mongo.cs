@@ -13,16 +13,97 @@ namespace FastWebDevelop
     /// </summary>
     public class Mongo
     {
-        private static readonly string _connectionString = "Server=127.0.0.1:27017";
-
-        private static readonly string _dbName = "MyNorthwind";
-
         static MongoClient ct;
         static Mongo()
         {
             string connectionStr = "mongodb://127.0.0.1";
             ct = new MongoClient(connectionStr);
         }
+
+        string dbName = "";
+        public Mongo(string dbname)
+        {
+            dbName = dbname;
+        }
+
+        #region 实例方法
+        public T First<T>(Expression<Func<T, bool>> fiter)
+        {
+            try
+            {
+                var db = ct.GetDatabase(dbName);
+                var col = db.GetCollection<T>(typeof(T).FullName);
+                return col.Find<T>(fiter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return default(T);
+        }
+
+        public long Count<T>(Expression<Func<T, bool>> fiter)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.Count<T>(fiter);
+        }
+        public List<T> FindList<T>(Expression<Func<T, bool>> fiter)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.Find<T>(fiter).ToList();
+        }
+        public IFindFluent<T, T> Find<T>(Expression<Func<T, bool>> fiter)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.Find<T>(fiter);
+        }
+
+        public void Insert<T>(T data)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            col.InsertOne(data);
+        }
+
+        public void Insert<T>(IEnumerable<T> data)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            col.InsertMany(data);
+        }
+
+        public UpdateResult Update<T>(Expression<Func<T, bool>> fiter, UpdateDefinition<T> update)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.UpdateOne(fiter, update);
+        }
+
+        public UpdateResult UpdateMany<T>(Expression<Func<T, bool>> fiter, UpdateDefinition<T> update)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.UpdateMany(fiter, update);
+        }
+
+        public DeleteResult Delete<T>(Expression<Func<T, bool>> fiter)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.DeleteOne(fiter);
+        }
+
+        public DeleteResult DeleteMany<T>(Expression<Func<T, bool>> fiter)
+        {
+            var db = ct.GetDatabase(dbName);
+            var col = db.GetCollection<T>(typeof(T).FullName);
+            return col.DeleteMany(fiter);
+        }
+
+        #endregion
 
         public static T First<T>(Expression<Func<T, bool>> fiter, string dbname = "default")
         {

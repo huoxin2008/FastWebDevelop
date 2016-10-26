@@ -10,12 +10,16 @@ namespace TaiDong
     [Safe]
     public class Class1
     {
-        static string DBName = "TaiDong";
+        static Mongo Db = new Mongo("TaiDong");
 
+        public static bool CheckToken(string token)
+        {
+            return (Program.Token == token);
+        }
         [UnSafe]
         public static string GetContent(string type)
         {
-            return (Mongo.First<Content>(a => a.type == type) ?? new Content()).content;
+            return (Db.First<Content>(a => a.type == type) ?? new Content()).content;
         }
 
         public static AjaxResult SetContent(string token, string type, string content)
@@ -26,8 +30,10 @@ namespace TaiDong
 
                 var dd = bd.Set<string>(b => b.content, content);
                 var cc = bd.Set<DateTime>(b => b.editTime, DateTime.Now);
-
-                Mongo.Update<Content>(a => a.type == type, bd.Combine(cc, dd), DBName);
+                var fo = Db.First<Content>(a => a.type == type);
+                if (fo == null)
+                    Db.Insert<Content>(new Content { type = type, content = content, editTime = DateTime.Now });
+                Db.Update<Content>(a => a.type == type, bd.Combine(cc, dd));
             });
         }
 
@@ -35,13 +41,21 @@ namespace TaiDong
         [UnSafe]
         public static AjaxResult Login(string name, string pass)
         {
-            var u = Mongo.First<User>(a => a.name == name && a.pass == pass);
-            if (u == null)
-                return AjaxResult.Error("登录失败！");
-            //var tk = TokenManager.GetUserToken(name);
-            //Program.UserToken.Add(name, tk);
-            Program.Token = TokenManager.GetGlobalToken();
-            return AjaxResult.Success(Program.Token);
+            try
+            {
+                var u = Db.First<User>(a => a.name == name && a.pass == pass);
+                if (u == null)
+                    return AjaxResult.Error("登录失败！");
+                //var tk = TokenManager.GetUserToken(name);
+                //Program.UserToken.Add(name, tk);
+                Program.Token = TokenManager.GetGlobalToken();
+                return AjaxResult.Success(Program.Token);
+            }
+            catch (Exception e)
+            {
+                return AjaxResult.Error(e.Message);
+            }
+
         }
 
 
@@ -57,6 +71,7 @@ namespace TaiDong
 
     public class User
     {
+        public int id;
         public string name;
         public string pass;
         public string level;

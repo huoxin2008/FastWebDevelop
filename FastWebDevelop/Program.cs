@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MongoDB;
 using System.IO;
 using System.Reflection;
+using TaiDong;
 
 namespace FastWebDevelop
 {
@@ -33,7 +34,12 @@ namespace FastWebDevelop
 #else
             server = new HproseHttpListenerServer("http://127.0.0.1:22012/");
 #endif
+            //Mongo Db = new Mongo("TaiDong");
+            //Db.DeleteMany<User>(add=>true);
+            // Db.Delete<Content>(a=>a.type=="about");
+            //var add= Db.FindList<Content>(a => true);
             var AddDomian = new string[] { "TaiDong" };
+            //Mongo.Insert<User>(new User { name = "admin", pass = "admin", level = "管理员" }, "TaiDong");
 
             var fs = Directory.GetFiles(dPath, "*.dll");
             foreach (var f in fs)
@@ -84,7 +90,7 @@ namespace FastWebDevelop
             {
                 if (SaveFunc.Contains(name))
                 {
-                    if (arg.Length <= 0 || Token != arg[0])
+                    if (arg.Length <= 0 || Token != arg[0] as string)
                     {
                         throw new Exception("验证失败!");
                     }
@@ -129,9 +135,9 @@ namespace FastWebDevelop
         }
 
 
-        static void GetToken(string appid, string appsecret)
+        public static bool CheckToken(string token)
         {
-
+            return (Token == token);
         }
 
     }

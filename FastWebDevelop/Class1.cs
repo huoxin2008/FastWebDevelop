@@ -1,4 +1,5 @@
 ﻿using FastWebDevelop;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,17 @@ namespace TaiDong
     [Safe]
     public class Class1
     {
-        static string DBName = "TaiDong";
+        static Mongo Db = new Mongo("TaiDong");
 
+        [UnSafe]
+        public static bool CheckToken(string token)
+        {
+            return (Program.Token == token);
+        }
         [UnSafe]
         public static string GetContent(string type)
         {
-            return (Mongo.First<Content>(a => a.type == type, DBName) ?? new Content()).content;
+            return (Db.First<Content>(a => a.type == type) ?? new Content()).content;
         }
 
         public static AjaxResult SetContent(string token, string type, string content)
@@ -26,8 +32,11 @@ namespace TaiDong
 
                 var dd = bd.Set<string>(b => b.content, content);
                 var cc = bd.Set<DateTime>(b => b.editTime, DateTime.Now);
-
-                Mongo.Update<Content>(a => a.type == type, bd.Combine(cc, dd), DBName);
+                var fo = Db.First<Content>(a => a.type == type);
+                if (fo == null)
+                    Db.Insert<Content>(new Content { type = type, content = content, editTime = DateTime.Now });
+                else
+                    Db.Update<Content>(a => a.type == type, bd.Combine(cc, dd));
             });
         }
 
@@ -35,10 +44,9 @@ namespace TaiDong
         [UnSafe]
         public static AjaxResult Login(string name, string pass)
         {
-            Mongo.Insert<User>(new User { name = "admin", pass = "admin", level = "管理员" });
             try
             {
-                var u = Mongo.First<User>(a => a.name == name && a.pass == pass, DBName);
+                var u = Db.First<User>(a => a.name == name && a.pass == pass);
                 if (u == null)
                     return AjaxResult.Error("登录失败！");
                 //var tk = TokenManager.GetUserToken(name);
@@ -59,14 +67,16 @@ namespace TaiDong
 
     public class Content
     {
+        [BsonId]
+        public string type;
         public DateTime editTime;
         public string content;
-        public string type;
+      
     }
 
     public class User
     {
-        public int id;
+        [BsonId]
         public string name;
         public string pass;
         public string level;
